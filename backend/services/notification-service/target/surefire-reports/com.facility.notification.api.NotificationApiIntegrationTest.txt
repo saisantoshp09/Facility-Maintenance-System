@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.facility.notification.api.NotificationApiIntegrationTest
+-------------------------------------------------------------------------------
+Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 7.001 s -- in com.facility.notification.api.NotificationApiIntegrationTest

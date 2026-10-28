@@ -1,0 +1,4 @@
+com\facility\gateway\config\GatewayErrorHandler.class
+com\facility\gateway\ApiGatewayApplication.class
+com\facility\gateway\config\SecurityConfiguration.class
+com\facility\gateway\config\CorrelationIdFilter.class

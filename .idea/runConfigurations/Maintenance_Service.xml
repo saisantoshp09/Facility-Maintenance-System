@@ -1,0 +1,16 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Maintenance Service" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <option name="ALTERNATIVE_JRE_PATH" value="C:\Users\user\.jdks\ms-21.0.11" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+    <envs>
+      <env name="SPRING_DATASOURCE_URL" value="jdbc:mysql://localhost:3306/facility_maintenance?useSSL=false&amp;allowPublicKeyRetrieval=true&amp;serverTimezone=UTC" />
+      <env name="SPRING_DATASOURCE_USERNAME" value="maintenance_local" />
+      <env name="SPRING_DATASOURCE_PASSWORD" value="maintenance_123" />
+    </envs>
+    <module name="maintenance-service" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="com.facility.maintenance.MaintenanceServiceApplication" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

@@ -1,0 +1,5 @@
+com\facility\notification\api\NotificationApiIntegrationTest$ClockConfig.class
+com\facility\notification\api\NotificationApiIntegrationTest$MutableClock.class
+com\facility\notification\api\InternalApiKeyUnsetTest.class
+com\facility\notification\api\NotificationApiIntegrationTest.class
+com\facility\notification\application\ServiceStatusQueryTest.class

@@ -1,0 +1,5 @@
+com\facility\property\seed\DevSeedRunnerTest$WithProfile.class
+com\facility\property\api\PropertyApiIntegrationTest.class
+com\facility\property\application\ServiceStatusQueryTest.class
+com\facility\property\seed\DevSeedRunnerTest.class
+com\facility\property\seed\DevSeedRunnerTest$WithoutProfile.class

@@ -1,0 +1,29 @@
+@use '@angular/material' as mat;
+
+@include mat.core();
+
+$primary: mat.define-palette(mat.$indigo-palette);
+$accent: mat.define-palette(mat.$pink-palette, A200, A100, A400);
+$warn: mat.define-palette(mat.$red-palette);
+$theme: mat.define-light-theme((color: (primary: $primary, accent: $accent, warn: $warn)));
+
+@include mat.all-component-themes($theme);
+
+html, body { height: 100%; margin: 0; font-family: Roboto, 'Helvetica Neue', sans-serif; background: #f5f6fa; }
+
+.page { padding: 16px; max-width: 1200px; margin: 0 auto; }
+.page-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.page-header h1 { margin: 0; font-size: 22px; font-weight: 500; }
+.toolbar-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: baseline; }
+.full-width { width: 100%; }
+.table-wrap { overflow-x: auto; background: #fff; }
+table.mat-mdc-table, table.mat-table { width: 100%; }
+.muted { color: rgba(0, 0, 0, .6); }
+.error-text { color: #b3261e; }
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0 16px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.card-stat { text-align: center; cursor: pointer; }
+.card-stat .num { font-size: 32px; font-weight: 500; }
+mat-card { margin-bottom: 12px; }
+.mat-column-actions { text-align: right; white-space: nowrap; }
+.error-snack { --mdc-snackbar-container-color: #8c1d18; }

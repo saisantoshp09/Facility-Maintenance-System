@@ -1,0 +1,9 @@
+com\facility\asset\api\AssetApiIntegrationTest$FakeDirectory.class
+com\facility\asset\domain\MaintenanceScheduleTest.class
+com\facility\asset\api\AssetApiIntegrationTest$TestConfig.class
+com\facility\asset\seed\DevSeedRunnerTest$WithoutProfile.class
+com\facility\asset\application\ServiceStatusQueryTest.class
+com\facility\asset\seed\DevSeedRunnerTest.class
+com\facility\asset\config\RestPropertyDirectoryTest.class
+com\facility\asset\seed\DevSeedRunnerTest$WithProfile.class
+com\facility\asset\api\AssetApiIntegrationTest.class
