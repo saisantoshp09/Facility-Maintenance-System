@@ -22,6 +22,26 @@ spring:
       resourceserver:
         jwt:
           jwk-set-uri: ${JWT_JWK_SET_URI:http://localhost:8082/oauth2/jwks}
+  data:
+    web:
+      pageable:
+        max-page-size: 100
+        default-page-size: 20
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+app:
+  jwt:
+    issuer: ${IDENTITY_JWT_ISSUER:http://localhost:8082}
+    audience: ${IDENTITY_JWT_AUDIENCE:facility-api}
+  property-service:
+    base-url: ${PROPERTY_SERVICE_URL:http://localhost:8083}
+    connect-timeout: 2s
+    read-timeout: 3s
+    max-attempts: 2
+logging:
+  pattern:
+    level: "%5p [%X{correlationId:-}]"
 server:
   port: ${SERVER_PORT:8085}
 management:

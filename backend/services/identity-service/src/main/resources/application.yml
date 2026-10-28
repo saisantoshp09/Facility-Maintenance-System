@@ -22,6 +22,26 @@ spring:
       resourceserver:
         jwt:
           jwk-set-uri: ${JWT_JWK_SET_URI:http://localhost:8082/oauth2/jwks}
+  data:
+    web:
+      pageable:
+        max-page-size: 100
+        default-page-size: 20
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+identity:
+  jwt:
+    issuer: ${IDENTITY_JWT_ISSUER:http://localhost:8082}
+    audience: ${IDENTITY_JWT_AUDIENCE:facility-api}
+    access-token-ttl: ${IDENTITY_JWT_ACCESS_TOKEN_TTL:15m}
+    private-key-location: ${IDENTITY_JWT_PRIVATE_KEY_LOCATION:}
+  bootstrap-admin:
+    email: ${IDENTITY_BOOTSTRAP_ADMIN_EMAIL:}
+    password: ${IDENTITY_BOOTSTRAP_ADMIN_PASSWORD:}
+logging:
+  pattern:
+    level: "%5p [%X{correlationId:-}]"
 server:
   port: ${SERVER_PORT:8082}
 management:

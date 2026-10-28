@@ -19,6 +19,7 @@ spring:
                 allow-credentials: false
                 max-age: 3600
           default-filters:
+            - DedupeResponseHeader=X-Correlation-ID, RETAIN_FIRST
             - name: RequestSize
               args:
                 maxSize: 2MB
@@ -38,11 +39,11 @@ spring:
             - id: asset-service
               uri: ${ASSET_SERVICE_URL:http://localhost:8085}
               predicates:
-                - Path=/api/v1/assets/**,/api/v1/maintenance-schedules/**
+                - Path=/api/v1/assets/**,/api/v1/maintenance-schedules/**,/api/v1/schedules/**,/api/v1/tasks/**
             - id: notification-service
               uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8086}
               predicates:
-                - Path=/api/v1/notifications/**
+                - Path=/api/v1/notifications/**,/api/v1/admin/notifications/**
 server:
   port: ${SERVER_PORT:8081}
 management:

@@ -1,4 +1,4 @@
-# Property & Facility Maintenance Management System
+﻿# Property & Facility Maintenance Management System
 
 ## Project status
 
@@ -180,15 +180,15 @@ Before deployment, create billing alerts and a cleanup checklist covering ECS se
 
 ## Prioritized implementation backlog
 
-1. **Phase 2 — Scaffold:** Monorepo conventions, Angular workspace, Maven services, local configuration, Dockerfiles, Docker Compose, MySQL, and health endpoints.
-2. **Phase 3 — Identity and property access:** Authentication, roles, user administration, property/unit/membership APIs, migrations, and property-isolation tests.
-3. **Phase 3 — Maintenance workflow:** Requests, comments, approvals, assignments, state transitions, history, pagination, reports, and workflow/security tests.
-4. **Phase 3 — Assets and notifications:** Asset inventory, schedules/due tasks, outbox delivery, idempotency, and local mock email.
-5. **Phase 4 — Angular application:** Shell, login, lazy routes, dashboard, property and maintenance workflows, then assets and reports; add API, guard, interceptor, form, and state tests.
-6. **Phase 5 — Local integration:** Run and test the end-to-end tenant/manager/technician workflow with Compose; verify migrations and failure handling.
-7. **Phase 6 — CI:** Protected-branch Jenkins validation, image build/scanning, ECR publishing, and non-production deployment/rollback checks.
-8. **Phase 7 — AWS:** Review account eligibility, region, cost, IAM, network plan, and cleanup steps; provision only after approval.
-9. **Phase 8 — Demonstration/docs:** Synthetic demo data, operating guide, API/database/security documentation, and rollback/cleanup walkthrough.
+1. **Phase 2 Ã¢â‚¬â€ Scaffold:** Monorepo conventions, Angular workspace, Maven services, local configuration, Dockerfiles, Docker Compose, MySQL, and health endpoints.
+2. **Phase 3 Ã¢â‚¬â€ Identity and property access:** Authentication, roles, user administration, property/unit/membership APIs, migrations, and property-isolation tests.
+3. **Phase 3 Ã¢â‚¬â€ Maintenance workflow:** Requests, comments, approvals, assignments, state transitions, history, pagination, reports, and workflow/security tests.
+4. **Phase 3 Ã¢â‚¬â€ Assets and notifications:** Asset inventory, schedules/due tasks, outbox delivery, idempotency, and local mock email.
+5. **Phase 4 Ã¢â‚¬â€ Angular application:** Shell, login, lazy routes, dashboard, property and maintenance workflows, then assets and reports; add API, guard, interceptor, form, and state tests.
+6. **Phase 5 Ã¢â‚¬â€ Local integration:** Run and test the end-to-end tenant/manager/technician workflow with Compose; verify migrations and failure handling.
+7. **Phase 6 Ã¢â‚¬â€ CI:** Protected-branch Jenkins validation, image build/scanning, ECR publishing, and non-production deployment/rollback checks.
+8. **Phase 7 Ã¢â‚¬â€ AWS:** Review account eligibility, region, cost, IAM, network plan, and cleanup steps; provision only after approval.
+9. **Phase 8 Ã¢â‚¬â€ Demonstration/docs:** Synthetic demo data, operating guide, API/database/security documentation, and rollback/cleanup walkthrough.
 
 ## Decisions and prerequisites
 
@@ -213,4 +213,88 @@ The Spring apps are not yet wired to real frontend workflows, and the Angular wo
 
 **Credential hygiene:** The database credential pasted into the conversation was not copied into the repository or local configuration. If it is real or reused, rotate it anywhere it is used.
 
-**Phase gate:** Phase 2 remains in progress. Do not begin Phase 3 until the scaffolding, local integration, and documentation are reviewed and approved.
+**Phase gate:** Phase 2 local Docker verification is still outstanding (deferred by the project owner). Phase 3 work has started with Identity and Access; see below.
+
+## Backend conventions (reference implementation: identity-service)
+
+Each service copies these conventions rather than sharing a library, to keep services independently deployable.
+
+- **Errors:** every failure (validation, auth, 404, 409, 500) uses the JSON envelope shown above, including 401/403 produced by Spring Security. Responses never contain stack traces.
+- **Correlation ID:** `X-Correlation-ID` is accepted if it matches `[A-Za-z0-9-]{1,64}`, otherwise generated; it is echoed in the response, placed in the log MDC, and included in error bodies.
+- **Pagination:** `page`, `size` (max 100, default 20), `sort=field,dir`; only whitelisted sort fields are accepted (400 otherwise). Responses use `{content, page, size, totalElements, totalPages}`.
+- **IDs and time:** UUIDs stored as `BINARY(16)`, serialized canonically; timestamps are UTC `DATETIME(6)` serialized as ISO-8601.
+- **Authorization:** enforced in each service with `@PreAuthorize` on role claims, not only at the gateway.
+
+## Identity and Access (implemented)
+
+- Schema (Flyway `V1__identity_schema.sql`): `roles`, `users`, `user_roles`, `audit_events`. Passwords are BCrypt-hashed (12Ã¢â‚¬â€œ72 chars enforced); emails are trimmed and lowercased.
+- `POST /api/v1/auth/login` (public) with `{email, password}` returns `{access_token, token_type, expires_in}`. It uses a generic 401 for unknown/wrong/disabled accounts and an equal-cost password check for unknown users. Login attempts are audited.
+- Tokens are RS256 JWTs (Spring Security/Nimbus) with `iss`, `aud` (`facility-api`), `sub` (user UUID), `roles`, `iat`, `exp` (default 15 minutes), and `jti`. Public keys are served at `GET /oauth2/jwks`.
+- `GET /api/v1/users/me` (any valid token; disabled accounts are rejected). SYSTEM_ADMIN only: `GET/POST /api/v1/users`, `GET /api/v1/users/{id}`, `PATCH /api/v1/users/{id}/status`, `PUT /api/v1/users/{id}/roles`. Administrators cannot disable themselves or remove their own admin role.
+- Configuration (environment): `IDENTITY_JWT_PRIVATE_KEY_LOCATION` (PKCS#8 PEM RSA key, e.g. `file:/run/secrets/jwt.pem`), `IDENTITY_JWT_ISSUER`, `IDENTITY_JWT_AUDIENCE`, `IDENTITY_JWT_ACCESS_TOKEN_TTL`. Without a key file an **ephemeral key** is generated at startup (local only; tokens die on restart and multiple instances would disagree). Generate a local key outside the repo, e.g. `openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out jwt.pem`.
+- First administrator: set `IDENTITY_BOOTSTRAP_ADMIN_EMAIL` and `IDENTITY_BOOTSTRAP_ADMIN_PASSWORD` locally; it is created only if the user table is empty. No credentials are in source or migrations.
+- Tests: `backend\mvnw.cmd -f backend\pom.xml -pl services/identity-service -am test` (unit, `@DataJpaTest`, and MockMvc security tests on in-memory H2 in MySQL mode). Testcontainers MySQL tests are planned once Docker is available.
+
+**Known limitations (Identity):** no OIDC Authorization Code + PKCE flow yet (direct credential login is used until the SPA phase); no login throttling/lockout; no refresh tokens or revocation (issued tokens stay valid until expiry); password reset is not implemented; other services do not yet validate the `aud` claim or consume `roles` (to be done in their phases); MySQL-specific schema validation was run once manually against a throwaway local MySQL 8.0 instance (Flyway migration, Hibernate `validate`, login, `/users/me`, admin user creation, 401/403 handling, JWKS, and routing/JWT validation through the gateway). That check is not automated; Testcontainers tests are planned. Docker Compose has still not been run, so container builds and the Compose network path are unverified.
+
+## Property Management (implemented)
+
+- Schema (Flyway `V1__property_schema.sql`): `properties`, `buildings`, `floors`, `units`, `property_memberships`. `user_id` values reference Identity users logically only (no cross-database FK; the service does not verify the user exists).
+- Access model: SYSTEM_ADMIN sees all properties; everyone else only properties where they hold a membership (`PROPERTY_MANAGER`, `TENANT` bound to a unit, or `TECHNICIAN`). Callers with no relationship to a property get **404** (existence is not disclosed). Authorization is centralized in `PropertyAccessService`.
+- Endpoints under `/api/v1/properties`: `POST` (admin only), `GET` (scoped, paginated), `GET/PUT /{id}`, `GET /{id}/access` (authoritative access answer for other services), `POST/GET /{id}/buildings`, `POST/GET /{id}/buildings/{bid}/floors`, `POST/GET /{id}/units`, `GET /{id}/units/{uid}` (tenants only see their own units), `POST/GET /{id}/memberships`, `DELETE /{id}/memberships/{mid}` (admin or property manager). Duplicates return 409; invalid input or sort fields return 400.
+- JWT validation: signature via the identity JWKS (`JWT_JWK_SET_URI`), expiry, issuer (`IDENTITY_JWT_ISSUER`) and audience (`IDENTITY_JWT_AUDIENCE`); `roles` claim is mapped to `ROLE_*` authorities.
+- Tests: `backend\mvnw.cmd -f backend\pom.xml -pl services/property-service -am test` (MockMvc on H2; includes cross-property isolation tests).
+
+**Known limitations (Property):** no soft-delete/deactivation endpoint; no update/delete for buildings, floors, units; membership user ids are not validated against Identity; the MySQL path was verified once manually (Flyway migration, Hibernate validate, admin-created property, cross-service JWT validation against a live identity-service, 401 handling) but is not automated; Testcontainers tests are planned.
+
+## Maintenance and Work Orders (implemented)
+
+- Schema (Flyway `V1__maintenance_schema.sql`): `work_orders`, `work_order_comments`, `work_order_status_history`. Property/unit/user ids are logical references only (no cross-service FKs).
+- Property scoping: maintenance-service never reads the property database. It forwards the caller's bearer token to property-service (`GET /api/v1/properties/{id}/access`, and `/members/{userId}/access` to validate assignees) using `PROPERTY_SERVICE_URL` (default `http://localhost:8083`), with connect/read timeouts and at most 2 attempts (GET only). Any failure other than 403/404 fails closed with **503** `DEPENDENCY_UNAVAILABLE`.
+- Lifecycle: `OPEN -> APPROVED -> ASSIGNED -> IN_PROGRESS <-> ON_HOLD -> RESOLVED -> CLOSED`; `OPEN -> REJECTED` is an extra terminal state. Invalid transitions return **409**; stale concurrent updates (optimistic lock) also return 409. Transitions use `POST /api/v1/work-orders/{id}/transitions` with `{targetStatus, note, assigneeId, dueAt}`; every change is recorded in status history.
+- Roles: create = manager/admin, or tenant for their own unit; approve/reject/assign = manager/admin (assignee must be a TECHNICIAN member of the property); start/hold/resume/resolve = manager or the assigned technician; close = manager or the requester; due-date change (`PATCH /{id}/due-date`) = manager. Visibility: managers see all in the property, tenants their own requests, technicians their assigned orders; everything else is 404.
+- Other endpoints: `GET /api/v1/work-orders?propertyId=` (required; filters `status`, `priority`, `assigneeId`, `overdue`, `dueBefore`; paginated, sort whitelist), `POST/GET /{id}/comments`, `GET /{id}/history`.
+- Tests: `backend\mvnw.cmd -f backend\pom.xml -pl services/maintenance-service -am test` (H2, fake property directory, plus an HTTP-level test of the REST client).
+
+**Known limitations (Maintenance):** a manager-supplied `unitId` is not validated against property-service; no notification events are emitted yet; the MySQL path and live cross-service calls (real JWKS, real property-service) are not automated and were not manually verified for this service; Testcontainers tests are planned.
+
+## Assets and Preventive Maintenance (implemented)
+
+- Schema (Flyway `V1`): assets, maintenance schedules, generated tasks, service records. Property ids are logical references; property access is checked by forwarding the caller's token to property-service (`PROPERTY_SERVICE_URL`, GET only, timeouts, 2 attempts, fail closed with 503).
+- Access: managers/admins manage assets and schedules; technicians who are property members can read assets and record service; tenants get 403; non-members get 404.
+- Endpoints: `/api/v1/assets` (create, list with filters, get, update, `POST /{id}/retire`), `/api/v1/assets/{id}/schedules`, `PATCH /api/v1/schedules/{sid}/deactivate`, `GET /api/v1/tasks` (status, overdue, dueBefore), `GET /api/v1/tasks/due`, `/api/v1/assets/{id}/service-records`. Creating a schedule creates the first PENDING task; recording a service record against a task completes it and creates the next one (one pending task per schedule). Retired assets reject new schedules and service records (409).
+- Tests: `backend\mvnw.cmd -f backend\pom.xml -pl services/asset-service -am test` (H2).
+
+**Known limitations (Assets):** MySQL path not verified; no live cross-service run; maintenance work orders are not linked to assets.
+
+## Notifications (implemented)
+
+- No broker. Maintenance-service writes events to a transactional outbox (`outbox_events`, Flyway `V2`) in the same transaction as work-order changes; a scheduler posts them to notification-service `POST /internal/v1/events` with bounded retries and backoff. Recipients are the requester and assignee, excluding the actor. Business requests never fail because notification-service is down.
+- Internal endpoint auth: `X-Internal-Api-Key` header compared in constant time with `INTERNAL_API_KEY` (set the same local-only random value for both services; if unset, the internal endpoint rejects everything and the outbox stays PENDING). Never commit the key.
+- Idempotency: `processed_events` unique `eventId`; duplicates return 200 `DUPLICATE`, new events 202 `ACCEPTED`.
+- Delivery: a scheduler sends PENDING notifications through a mock channel (log only, no message bodies), records each attempt in `notification_delivery_attempts`, retries with exponential backoff, and marks FAILED after `DELIVERY_MAX_ATTEMPTS`. Config: `DELIVERY_ENABLED`, `DELIVERY_POLL_INTERVAL`, `DELIVERY_BACKOFF`, `DELIVERY_MOCK_FAIL_TYPES`.
+- User API: `GET /api/v1/notifications` (`unread`, `status`), `POST /api/v1/notifications/{id}/read`, `GET /api/v1/notifications/unread-count`; users only see their own (others 404). `GET /api/v1/admin/notifications/{id}/attempts` is SYSTEM_ADMIN only.
+
+**Known limitations (Notifications):** mock delivery only; MySQL and live cross-service flow not verified; no events from asset-service yet; a work order whose only recipient is the actor emits nothing.
+
+## Development seed data (dev-seed profile)
+
+Synthetic demo data for local development only. It is **not** part of Flyway migrations, so it never reaches other environments unless the profile is switched on. Each of identity, property, maintenance and asset has a `@Profile("dev-seed")` `DevSeedRunner` that inserts fixed-id rows idempotently (existing rows are skipped) and logs only counts. Notification has none (its data is event-driven).
+
+Enable: set `SPRING_PROFILES_ACTIVE=dev-seed` and `DEV_SEED_PASSWORD` (12-72 characters, a unique value you choose locally; never commit it). If the password is missing or too short, the identity seeder logs a warning and skips.
+
+Created:
+- Identity: `manager@example.test` (PROPERTY_MANAGER), `tenant@example.test` (TENANT), `tech@example.test` (TECHNICIAN), all ACTIVE, sharing `DEV_SEED_PASSWORD`.
+- Property: "Demo Plaza" with 1 building, 2 floors, 3 units; memberships for the three users (tenant bound to unit 101).
+- Maintenance: 5 work orders (OPEN, APPROVED, ASSIGNED, IN_PROGRESS [overdue], CLOSED) with status history. Written directly, so no outbox events or notifications are emitted.
+- Asset: HVAC, elevator and generator with schedules, pending tasks (one overdue) and one service record.
+
+Never enable this profile in production.
+
+## Status and remaining work
+
+Phases 1-7 are implemented with H2-based tests (95 passing). Dev-only synthetic seed data is available via the `dev-seed` profile.
+
+**Live end-to-end run (manual, no Docker):** all six services were run as jars against a throwaway local MySQL 8.0 (one least-privilege user per database, random local-only secrets, `dev-seed` profile) and exercised through the gateway: logins for all four roles, 401 without/with bogus tokens, property-scoped 404s, the full work-order lifecycle with role/ownership 403s and invalid-transition 409s, assets/tasks/service records, outbox-to-notification delivery (notifications reached SENT), mark-read isolation, admin-only attempts, and 503 from maintenance when property-service is down. Fixed in the process: the gateway had no routes for `/api/v1/tasks`, `/api/v1/schedules` and `/api/v1/admin/notifications`. This run is not automated.
+
+**Gateway errors:** downstream connect failures return 503 `SERVICE_UNAVAILABLE`, timeouts 504, using the standard error envelope (`GatewayErrorHandler`, verified live). **Not done:** Testcontainers MySQL tests; Docker image/Compose verification (Docker not installed).
