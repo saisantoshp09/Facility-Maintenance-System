@@ -1,0 +1,11 @@
+com\facility\maintenance\api\WorkOrderApiIntegrationTest$FakeDirectory.class
+com\facility\maintenance\seed\DevSeedRunnerTest.class
+com\facility\maintenance\application\ServiceStatusQueryTest.class
+com\facility\maintenance\application\OutboxDispatcherTest.class
+com\facility\maintenance\domain\WorkOrderTest.class
+com\facility\maintenance\api\WorkOrderApiIntegrationTest$FakeDirectoryConfig.class
+com\facility\maintenance\config\RestPropertyDirectoryTest.class
+com\facility\maintenance\application\OutboxEventWriterTest.class
+com\facility\maintenance\api\WorkOrderApiIntegrationTest.class
+com\facility\maintenance\seed\DevSeedRunnerTest$WithoutProfile.class
+com\facility\maintenance\seed\DevSeedRunnerTest$WithProfile.class

@@ -1,0 +1,29 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:asset-test;MODE=MySQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:8082/oauth2/jwks
+app:
+  jwt:
+    issuer: http://localhost:8082
+    audience: facility-api
+  property-service:
+    base-url: http://localhost:8083
+    connect-timeout: 1s
+    read-timeout: 1s
+    max-attempts: 2

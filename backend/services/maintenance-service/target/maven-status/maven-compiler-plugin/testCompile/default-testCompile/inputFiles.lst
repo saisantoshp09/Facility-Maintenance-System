@@ -1,0 +1,7 @@
+C:\FMS Project\backend\services\maintenance-service\src\test\java\com\facility\maintenance\api\WorkOrderApiIntegrationTest.java
+C:\FMS Project\backend\services\maintenance-service\src\test\java\com\facility\maintenance\application\OutboxDispatcherTest.java
+C:\FMS Project\backend\services\maintenance-service\src\test\java\com\facility\maintenance\application\OutboxEventWriterTest.java
+C:\FMS Project\backend\services\maintenance-service\src\test\java\com\facility\maintenance\application\ServiceStatusQueryTest.java
+C:\FMS Project\backend\services\maintenance-service\src\test\java\com\facility\maintenance\config\RestPropertyDirectoryTest.java
+C:\FMS Project\backend\services\maintenance-service\src\test\java\com\facility\maintenance\domain\WorkOrderTest.java
+C:\FMS Project\backend\services\maintenance-service\src\test\java\com\facility\maintenance\seed\DevSeedRunnerTest.java

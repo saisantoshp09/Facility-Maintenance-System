@@ -1,0 +1,16 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Asset Service" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <option name="ALTERNATIVE_JRE_PATH" value="C:\Users\user\.jdks\ms-21.0.11" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+    <envs>
+      <env name="SPRING_DATASOURCE_URL" value="jdbc:mysql://localhost:3306/facility_asset?useSSL=false&amp;allowPublicKeyRetrieval=true&amp;serverTimezone=UTC" />
+      <env name="SPRING_DATASOURCE_USERNAME" value="asset_local" />
+      <env name="SPRING_DATASOURCE_PASSWORD" value="asset_123" />
+    </envs>
+    <module name="asset-service" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="com.facility.asset.AssetServiceApplication" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

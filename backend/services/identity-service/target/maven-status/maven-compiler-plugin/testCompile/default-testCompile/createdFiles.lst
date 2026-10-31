@@ -1,0 +1,8 @@
+com\facility\identity\api\IdentityApiIntegrationTest.class
+com\facility\identity\application\UserAdministrationServiceTest.class
+com\facility\identity\seed\DevSeedRunnerTest$WithProfile.class
+com\facility\identity\seed\DevSeedRunnerTest$WithoutProfile.class
+com\facility\identity\domain\UserAccountRepositoryTest.class
+com\facility\identity\seed\DevSeedRunnerTest$WeakPassword.class
+com\facility\identity\seed\DevSeedRunnerTest.class
+com\facility\identity\application\ServiceStatusQueryTest.class
