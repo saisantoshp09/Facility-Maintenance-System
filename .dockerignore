@@ -1,0 +1,9 @@
+.git
+.idea
+.vscode
+.env
+**/node_modules
+**/target
+**/dist
+**/.angular
+**/coverage
