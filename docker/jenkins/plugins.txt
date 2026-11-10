@@ -1,0 +1,9 @@
+git
+github
+github-branch-source
+workflow-aggregator
+pipeline-stage-view
+junit
+credentials-binding
+timestamper
+ws-cleanup
