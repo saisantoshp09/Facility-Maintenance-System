@@ -14,22 +14,31 @@ interface NavItem { label: string; icon: string; link: string; show: boolean; }
 @Component({
   selector: 'app-shell',
   template: `
-    <mat-toolbar color="primary" class="top">
-      <button mat-icon-button type="button" aria-label="Toggle navigation" (click)="nav.toggle()">
-        <mat-icon>menu</mat-icon>
-      </button>
-      <span class="brand">Facility Maintenance</span>
-      <span class="spacer"></span>
-      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="prop-select" *ngIf="(ctx.properties$ | async) as props">
-        <mat-label>Property</mat-label>
-        <mat-select [value]="ctx.selectedId$ | async" (selectionChange)="ctx.select($event.value)" aria-label="Select property">
-          <mat-option *ngFor="let p of props" [value]="p.id">{{ p.name }}</mat-option>
-        </mat-select>
-      </mat-form-field>
-      <app-notification-bell></app-notification-bell>
-      <button mat-icon-button type="button" [matMenuTriggerFor]="userMenu" aria-label="Account menu">
-        <mat-icon>account_circle</mat-icon>
-      </button>
+    <mat-toolbar class="top">
+      <div class="brand-group">
+        <button mat-icon-button type="button" aria-label="Toggle navigation" (click)="nav.toggle()">
+          <mat-icon>menu</mat-icon>
+        </button>
+        <span class="brand-mark" aria-hidden="true"><mat-icon>domain</mat-icon></span>
+        <span class="brand">Facility Maintenance</span>
+      </div>
+      <div class="top-actions">
+        <div class="property-picker" *ngIf="(ctx.properties$ | async) as props">
+          <mat-icon aria-hidden="true">apartment</mat-icon>
+          <div class="property-picker-content">
+            <span class="property-label">Property</span>
+            <mat-select [value]="ctx.selectedId$ | async" (selectionChange)="ctx.select($event.value)"
+                        [disabled]="!props.length" [placeholder]="props.length ? 'Select property' : 'No properties'"
+                        aria-label="Select property">
+              <mat-option *ngFor="let p of props" [value]="p.id">{{ p.name }}</mat-option>
+            </mat-select>
+          </div>
+        </div>
+        <app-notification-bell></app-notification-bell>
+        <button mat-icon-button type="button" [matMenuTriggerFor]="userMenu" aria-label="Account menu">
+          <mat-icon>account_circle</mat-icon>
+        </button>
+      </div>
       <mat-menu #userMenu="matMenu">
         <div class="menu-user" *ngIf="auth.user as u">
           <strong>{{ u.displayName }}</strong><br><span class="muted">{{ u.email }}</span>
@@ -39,10 +48,12 @@ interface NavItem { label: string; icon: string; link: string; show: boolean; }
       </mat-menu>
     </mat-toolbar>
     <mat-sidenav-container class="container">
-      <mat-sidenav #nav [mode]="mobile ? 'over' : 'side'" [opened]="!mobile" (click)="mobile && nav.close()">
-        <mat-nav-list>
-          <ng-container *ngFor="let item of items()">
-            <a mat-list-item *ngIf="item.show" [routerLink]="item.link" routerLinkActive="active">
+      <mat-sidenav #nav [mode]="mobile ? 'over' : 'side'" [opened]="!mobile">
+        <div class="nav-heading">WORKSPACE</div>
+        <mat-nav-list aria-label="Main navigation">
+          <ng-container *ngFor="let item of items(); trackBy: trackByLink">
+            <a mat-list-item *ngIf="item.show" [routerLink]="item.link" routerLinkActive="active"
+               ariaCurrentWhenActive="page" (click)="mobile && nav.close()">
               <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
               <span matListItemTitle>{{ item.label }}</span>
             </a>
@@ -66,18 +77,45 @@ interface NavItem { label: string; icon: string; link: string; show: boolean; }
       </mat-sidenav-content>
     </mat-sidenav-container>`,
   styles: [`
-    :host { display: flex; flex-direction: column; height: 100vh; }
-    .top { position: relative; z-index: 2; gap: 8px; }
-    .spacer { flex: 1; }
-    .container { flex: 1; }
-    mat-sidenav { width: 230px; }
-    .prop-select { width: 200px; font-size: 13px; margin-right: 8px; margin-top: 6px; }
-    .menu-user { padding: 8px 16px; }
-    .active { background: rgba(63,81,181,.12); }
-    .crumbs { display: flex; align-items: center; padding: 8px 16px 0; font-size: 13px; flex-wrap: wrap; }
+    :host { display: flex; flex-direction: column; height: 100vh; height: 100dvh; color: #172b4d; }
+    .top { position: relative; z-index: 2; flex: 0 0 auto; min-height: 72px; height: auto;
+      padding: 10px 24px; gap: 16px; justify-content: space-between; background: #fff;
+      color: #172b4d; border-bottom: 1px solid #e3eaf3; box-shadow: 0 2px 8px rgba(24, 49, 85, .04); }
+    .brand-group, .top-actions { display: flex; align-items: center; min-width: 0; gap: 12px; }
+    .brand-group { flex-shrink: 0; }
+    .brand-mark { display: grid; place-items: center; width: 38px; height: 38px;
+      border-radius: 10px; background: #e8f0ff; color: #2459b5; }
+    .brand { font-size: 17px; font-weight: 600; letter-spacing: -.2px; white-space: nowrap; }
+    .top-actions { justify-content: flex-end; }
+    .property-picker { box-sizing: border-box; display: flex; align-items: center; gap: 10px;
+      width: 220px; min-width: 0; padding: 6px 12px; border: 1px solid #dce5f0;
+      border-radius: 9px; background: #f8fafc; line-height: 1.2; }
+    .property-picker > mat-icon { color: #6b7f99; font-size: 20px; width: 20px; height: 20px; flex-shrink: 0; }
+    .property-picker-content { min-width: 0; flex: 1; }
+    .property-label { display: block; margin-bottom: 3px; color: #687a91; font-size: 11px; font-weight: 500; }
+    .property-picker mat-select { display: block; font-size: 13px; font-weight: 500; }
+    .container { flex: 1; min-height: 0; background: #f5f7fb; }
+    mat-sidenav { width: 240px; border-right: 1px solid #e3eaf3; background: #fff; }
+    mat-sidenav-content { min-width: 0; }
+    .nav-heading { padding: 28px 24px 8px; color: #8290a4; font-size: 11px; font-weight: 700; letter-spacing: .09em; }
+    mat-nav-list { padding: 4px 12px; }
+    mat-nav-list a { margin-bottom: 4px; border-radius: 8px; color: #52657e; }
+    mat-nav-list a mat-icon { color: #74869c; }
+    mat-nav-list a:hover { background: #f3f6fb; }
+    mat-nav-list a.active { background: #eaf1ff; color: #2459b5; font-weight: 600; }
+    mat-nav-list a.active mat-icon { color: #2459b5; }
+    .menu-user { padding: 12px 16px; }
+    .crumbs { display: flex; align-items: center; padding: 16px 24px 0; color: #687a91; font-size: 13px; flex-wrap: wrap; }
     .crumbs .sep { font-size: 16px; height: 16px; width: 16px; }
     .banner.warn { background: #fff8e1; color: #8d6e00; padding: 8px 16px; }
-    @media (max-width: 600px) { .brand { display: none; } .prop-select { width: 130px; } }
+    @media (max-width: 720px) {
+      .top { padding: 8px 12px; gap: 6px; flex-wrap: wrap; }
+      .brand-group { width: 100%; gap: 8px; }
+      .brand { font-size: 16px; }
+      .top-actions { width: 100%; gap: 4px; }
+      .property-picker { flex: 1; width: auto; }
+      .crumbs { padding: 12px 16px 0; }
+    }
   `]
 })
 export class ShellComponent implements OnInit, OnDestroy {
@@ -104,6 +142,8 @@ export class ShellComponent implements OnInit, OnDestroy {
     this.propsError = null;
     this.ctx.load().subscribe({ error: e => this.propsError = errorMessage(e) });
   }
+
+  trackByLink(_i: number, item: NavItem): string { return item.link; }
 
   items(): NavItem[] {
     const a = this.ctx.access;

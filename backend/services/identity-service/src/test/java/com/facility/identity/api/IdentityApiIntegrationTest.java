@@ -70,6 +70,47 @@ class IdentityApiIntegrationTest {
     }
 
     @Test
+    void publicRegistrationCreatesTenantAndAllowsLogin() throws Exception {
+        mvc.perform(post("/api/v1/auth/register").contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(Map.of(
+                                "email", "NewTenant@Example.test",
+                                "displayName", "New Tenant",
+                                "password", PASSWORD,
+                                "roles", Set.of("SYSTEM_ADMIN")))))
+                .andExpect(status().isCreated())
+                .andExpect(header().string("Cache-Control", containsString("no-store")))
+                .andExpect(jsonPath("$.email").value("newtenant@example.test"))
+                .andExpect(jsonPath("$.displayName").value("New Tenant"))
+                .andExpect(jsonPath("$.status").value("ACTIVE"))
+                .andExpect(jsonPath("$.roles[0]").value("TENANT"))
+                .andExpect(jsonPath("$.password").doesNotExist())
+                .andExpect(jsonPath("$.passwordHash").doesNotExist());
+
+        mvc.perform(post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(Map.of(
+                                "email", "newtenant@example.test", "password", PASSWORD))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.access_token").isNotEmpty());
+    }
+
+    @Test
+    void registrationRejectsDuplicateEmailAndInvalidInput() throws Exception {
+        mvc.perform(post("/api/v1/auth/register").contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(Map.of(
+                                "email", "TENANT@example.test",
+                                "displayName", "Another Tenant",
+                                "password", PASSWORD))))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("CONFLICT"));
+
+        mvc.perform(post("/api/v1/auth/register").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"invalid\",\"displayName\":\"\",\"password\":\"short\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.fieldErrors").isNotEmpty());
+    }
+
+    @Test
     void wrongPasswordAndUnknownUserBothReturnGeneric401() throws Exception {
         for (String email : new String[] {"admin@example.test", "nobody@example.test"}) {
             mvc.perform(post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON)

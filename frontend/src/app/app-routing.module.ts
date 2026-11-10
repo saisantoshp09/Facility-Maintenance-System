@@ -5,7 +5,7 @@ import { ShellComponent } from './core/layout/shell.component';
 import { ErrorPageComponent } from './core/layout/error-page.component';
 
 const routes: Routes = [
-  { path: 'login', loadChildren: () => import('./features/auth/auth.module').then(m => m.AuthModule) },
+  { path: '', loadChildren: () => import('./features/auth/auth.module').then(m => m.AuthModule) },
   {
     path: '',
     component: ShellComponent,

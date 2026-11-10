@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, switchMap, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { LoginResponse, Role, UserResponse } from '../models';
+import { LoginResponse, RegisterRequest, Role, UserResponse } from '../models';
 import { TokenStore } from './token-store';
 
 @Injectable({ providedIn: 'root' })
@@ -30,6 +30,10 @@ export class AuthService {
       }),
       switchMap(() => this.loadProfile())
     );
+  }
+
+  register(request: RegisterRequest): Observable<UserResponse> {
+    return this.http.post<UserResponse>(`${this.base}/auth/register`, request);
   }
 
   loadProfile(): Observable<UserResponse> {

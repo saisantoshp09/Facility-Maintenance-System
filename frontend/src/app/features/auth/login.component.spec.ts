@@ -71,4 +71,10 @@ describe('LoginComponent', () => {
     setup({ expired: '1' });
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('session has expired');
   });
+
+  it('prefills the email and confirms successful registration', () => {
+    setup({ registered: '1', email: 'new@example.test' });
+    expect(fixture.componentInstance.form.controls.email.value).toBe('new@example.test');
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Account created');
+  });
 });

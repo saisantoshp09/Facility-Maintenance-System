@@ -16,6 +16,7 @@ export class ErrorInterceptor implements HttpInterceptor {
   intercept(req: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
     const isApi = req.url.startsWith(environment.apiBaseUrl);
     const isLogin = req.url.endsWith('/auth/login');
+    const isPublicAuth = isLogin || req.url.endsWith('/auth/register');
     // Only idempotent GETs are retried (max 2); mutating calls never are.
     const stream = req.method === 'GET'
       ? next.handle(req).pipe(retry({
@@ -28,12 +29,12 @@ export class ErrorInterceptor implements HttpInterceptor {
     return stream.pipe(catchError((err: HttpErrorResponse) => {
       if (!isApi) { return throwError(() => err); }
       const appErr = toAppError(err);
-      if (appErr.status === 401 && !isLogin) {
+      if (appErr.status === 401 && !isPublicAuth) {
         this.tokens.clear();
         if (!this.router.url.startsWith('/login')) {
           this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url, expired: '1' } });
         }
-      } else if (!req.context.get(SKIP_ERROR_TOAST) && !isLogin
+      } else if (!req.context.get(SKIP_ERROR_TOAST) && !isPublicAuth
         && !(appErr.status === 400 && appErr.code === 'VALIDATION_ERROR')) {
         this.notifier.show(appErr);
       }

@@ -12,6 +12,7 @@ import { AppError } from '../../core/models';
         <h1>Sign in</h1>
         <p class="muted">Property &amp; Facility Maintenance</p>
         <p class="notice" *ngIf="expired" role="status">Your session has expired. Please sign in again.</p>
+        <p class="notice" *ngIf="registered" role="status">Account created. Sign in with your new credentials.</p>
         <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Email</mat-label>
@@ -28,6 +29,7 @@ import { AppError } from '../../core/models';
             {{ busy ? 'Signing in…' : 'Sign in' }}
           </button>
         </form>
+        <p class="register-link">New here? <a routerLink="/register">Create an account</a></p>
       </mat-card>
     </div>`,
   styles: ['.wrap { display: flex; justify-content: center; padding: 64px 16px; } .card { width: 100%; max-width: 400px; padding: 24px; } h1 { margin-top: 0; } .notice { background: #fff8e1; padding: 8px 12px; }']
@@ -36,6 +38,7 @@ export class LoginComponent {
   busy = false;
   error: string | null = null;
   expired = false;
+  registered = false;
   form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.maxLength(254)]],
     password: ['', [Validators.required, Validators.maxLength(128)]]
@@ -43,6 +46,8 @@ export class LoginComponent {
 
   constructor(private fb: FormBuilder, private auth: AuthService, private router: Router, route: ActivatedRoute) {
     this.expired = route.snapshot.queryParamMap.get('expired') === '1';
+    this.registered = route.snapshot.queryParamMap.get('registered') === '1';
+    this.form.controls.email.setValue(route.snapshot.queryParamMap.get('email') ?? '');
     this.returnUrl = route.snapshot.queryParamMap.get('returnUrl');
   }
   private returnUrl: string | null;

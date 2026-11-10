@@ -66,6 +66,7 @@ export interface AppError {
 
 // ---- Identity
 export interface LoginResponse { access_token: string; token_type: string; expires_in: number; }
+export interface RegisterRequest { email: string; displayName: string; password: string; }
 export interface UserResponse {
   id: string; email: string; displayName: string; status: UserStatus; roles: Role[];
   createdAt: string; updatedAt: string; lastLoginAt: string | null;
